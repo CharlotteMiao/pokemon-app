@@ -39,7 +39,7 @@ function App() {
   };
 
   const handleSelection = async (pokemon) => {
-    if (selectedPokemon && selectedPokemon.name == pokemon.name) {
+    if (selectedPokemon && selectedPokemon.name === pokemon.name) {
       setSelectedPokemon(null);
     } else {
       const data = await getPokemonDetails(pokemon.url);
