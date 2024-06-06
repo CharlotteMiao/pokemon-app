@@ -1,79 +1,70 @@
 import "./App.css";
-import { Container, Typography, Grid } from "@mui/material";
+
 import { useEffect, useState } from "react";
-import PokemonList from "./components/PokemonList";
-import PokemonImage from "./components/PokemonImage";
-import SearchBar from "./components/SearchBar";
-
 function App() {
-  const [pokemonList, setPokemonList] = useState([]);
-  const [filteredPokemons, setFilteredPokemons] = useState(pokemonList);
-  const [selectedPokemon, setSelectedPokemon] = useState(null);
-  const [searchField, setSearchField] = useState("");
+  /* 
+    1. Using any API consumption tool (ex. Axios, Fetch), make a request to the URL provided from a button labeled,
+        'Get Question'.
+    2. Parse the returned object for the 1st TRUE/FALSE (boolean) question; feel free to copy-paste the link into
+        a browser or console log it to understand the return object.
+    3. Display the question
+    4. On a second button, "Display Answer", display the answer.
+    5. Using any *imagineable means, implement a user-actioned event to go through the above steps and
+    get a new question.
+    
+    *Make use of as many React hook/built-in methods for demonstration of skills, knowledge*    
+    **Don't worry about CSS/stylization.**
+    
+    
+*/
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const pokemons = await getPokemon();
-      setPokemonList(pokemons);
-    };
-    fetchData();
-  }, []);
+  const [firstBoolean, setFirstBoolean] = useState(null);
+  const [showQuestion, setShowQuestion] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
 
-  useEffect(() => {
-    const newFilteredPokemons = pokemonList.filter((pokemon) =>
-      pokemon.name.toLowerCase().includes(searchField)
-    );
-    setFilteredPokemons(newFilteredPokemons);
-  }, [searchField, pokemonList]);
+  const apiUrl =
+    "https://opentdb.com/api.php?amount=10&category=17&difficulty=easy";
 
-  const getPokemon = async () => {
-    const response = await fetch("https://pokeapi.co/api/v2/pokemon/");
-    const data = await response.json();
-    return data.results;
-  };
-
-  const getPokemonDetails = async (url) => {
-    const response = await fetch(`${url}`);
-    const data = await response.json();
-    return data;
-  };
-
-  const handleSelection = async (pokemon) => {
-    if (selectedPokemon && selectedPokemon.name === pokemon.name) {
-      setSelectedPokemon(null);
-    } else {
-      const data = await getPokemonDetails(pokemon.url);
-      setSelectedPokemon(data);
+  const getData = async () => {
+    const result = await fetch(apiUrl);
+    const data = await result.json();
+    const questions = data.results;
+    if (questions && questions.length > 0) {
+      let q = questions.filter((item) => item.type === "boolean")[0];
+      setFirstBoolean(q);
     }
   };
 
-  const handleSearch = (value) => {
-    const searchFieldString = value.toLowerCase();
-    setSearchField(searchFieldString);
+  const handleShowQuestion = () => {
+    getData();
+    setShowQuestion(true);
   };
+  console.log(firstBoolean);
 
   return (
-    <Container sx={{ border: "1px solid grey", borderRadius: "16px" }}>
-      <Typography variant="h3" sx={{ margin: "10px 16px" }}>
-        Pokémon
-      </Typography>
-      <SearchBar onSearchChange={handleSearch} />
-      <Grid container spacing={2}  sx={{ height: `calc(100vh - 150px)`, }}>
-        <Grid item xs={12} sm={selectedPokemon ? 6 : 12}>
-          <PokemonList
-            pokemons={filteredPokemons}
-            onSelect={handleSelection}
-            selectedPokemonName={selectedPokemon ? selectedPokemon.name : ""}
-          ></PokemonList>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          {selectedPokemon && (
-            <PokemonImage selectedPokemon={selectedPokemon}></PokemonImage>
-          )}
-        </Grid>
-      </Grid>
-    </Container>
+    <>
+      <div>
+        <h1>Trivia Bot </h1>
+        <button onClick={handleShowQuestion}>Get Question</button>
+        <div>
+          {showQuestion &&
+            (firstBoolean
+              ? firstBoolean.question
+              : "question is not available, get question again")}
+        </div>
+
+        {showQuestion && (
+          <button onClick={() => setShowAnswer(true)}>Show Result</button>
+        )}
+        <div>
+          {showAnswer &&
+           (firstBoolean &&
+            firstBoolean.correct_answer
+              ? firstBoolean.correct_answer
+              : "answer is not available")}
+        </div>
+      </div>
+    </>
   );
 }
-
 export default App;
